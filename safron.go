@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-    "time"
+	"time"
 )
 
 var (
@@ -21,7 +21,7 @@ const Version = 1
 
 func withLogging(l *log.Logger, h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-        startTime := time.Now()
+		startTime := time.Now()
 		h.ServeHTTP(w, r)
 		l.Printf("%s %s (%v)\n", r.Method, r.URL, time.Since(startTime))
 	}
