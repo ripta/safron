@@ -18,7 +18,7 @@ var (
 	quiet      = flag.Bool("quiet", false, "No banner on startup")
 )
 
-const Version = 1
+const Version = 2
 
 func withLogging(l *log.Logger, h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
