@@ -14,7 +14,7 @@ var (
 	relRoot    = flag.String("path", ".", "Document root")
 	listenPort = flag.Int("port", 8080, "Port")
 	listenHost = flag.String("host", "0.0.0.0", "Host")
-	quiet      = flag.Bool("quiet", false, "Quiet")
+	quiet      = flag.Bool("quiet", false, "No banner on startup")
 )
 
 const Version = 1
