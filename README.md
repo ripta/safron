@@ -1,5 +1,7 @@
 # safron
 
+[![Build Status](http://drone.app.armada.routed.cloud/api/badges/ripta/safron/status.svg)](http://drone.app.armada.routed.cloud/ripta/safron)
+
 Quick-and-dirty static file web server, which you can obtain from
 [the releases page](https://github.com/ripta/safron/releases), or
 build it yourself:
@@ -23,4 +25,3 @@ Example:
   2015/10/27 17:24:13 Serving /Users/rpasay/Public
   2015/10/27 17:24:13 ^C to exit
 ```
-
