@@ -12,7 +12,7 @@ RUN apk add --update --no-cache git \
 RUN go build -o /safron $PROJECT
 
 
-FROM alpine:3.7
+FROM scratch
 COPY --from=builder /safron /safron
 VOLUME ["/data"]
 EXPOSE 8080
