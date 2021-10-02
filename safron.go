@@ -25,8 +25,8 @@ func withLogging(l *log.Logger, h http.Handler) http.HandlerFunc {
 		startTime := time.Now()
 		h.ServeHTTP(w, r)
 		l.WithFields(log.Fields{
-			"method": r.Method,
-			"path": r.URL.Path,
+			"method":   r.Method,
+			"path":     r.URL.Path,
 			"duration": time.Since(startTime),
 		}).Info()
 	}
