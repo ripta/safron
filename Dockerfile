@@ -1,18 +1,17 @@
-FROM golang:1.10-alpine3.7 AS builder
+FROM golang:1.21-bookworm AS builder
 
 ENV PROJECT=github.com/ripta/safron
 ENV CGO_ENABLED=0
 
-# RUN mkdir -p $GOPATH/src/$PROJECT
-COPY . $GOPATH/src/$PROJECT
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
 
-RUN apk add --update --no-cache git \
-    && go get $PROJECT \
-    && apk del git
-RUN go build -o /safron $PROJECT
+COPY . .
+RUN go build -o /safron .
 
 
-FROM scratch
+FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=builder /safron /safron
 VOLUME ["/data"]
 EXPOSE 8080
