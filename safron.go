@@ -32,7 +32,8 @@ func withLogging(l *slog.Logger, h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 		h.ServeHTTP(w, r)
-		l.Info("request",
+		l.Info("served request",
+			slog.String("type", "access_log"),
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
 			slog.Duration("duration", time.Since(startTime)),
