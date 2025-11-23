@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	log "github.com/sirupsen/logrus"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"time"
 )
@@ -18,53 +19,67 @@ var (
 	quiet      = flag.Bool("quiet", false, "No banner on startup")
 )
 
-const Version = 2
+func version() string {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "(devel)"
+	}
 
-func withLogging(l *log.Logger, h http.Handler) http.HandlerFunc {
+	return info.Main.Version
+}
+
+func withLogging(l *slog.Logger, h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 		h.ServeHTTP(w, r)
-		l.WithFields(log.Fields{
-			"method":   r.Method,
-			"path":     r.URL.Path,
-			"duration": time.Since(startTime),
-		}).Info()
+		l.Info("served request",
+			slog.String("type", "access_log"),
+			slog.String("method", r.Method),
+			slog.String("path", r.URL.Path),
+			slog.Duration("duration", time.Since(startTime)),
+		)
 	}
 }
 
 func main() {
 	flag.Parse()
 
-	logger := &log.Logger{
-		Out:   os.Stderr,
-		Level: log.InfoLevel,
-	}
+	var handler slog.Handler
 	switch *logFormat {
 	case "json":
-		logger.Formatter = new(log.JSONFormatter)
+		handler = slog.NewJSONHandler(os.Stderr, nil)
 	default:
-		logger.Formatter = new(log.TextFormatter)
+		handler = slog.NewTextHandler(os.Stderr, nil)
+	}
+	logger := slog.New(handler)
+
+	if args := flag.Args(); len(args) > 0 {
+		logger.Error("unexpected positional arguments", slog.Any("args", args))
+		os.Exit(1)
 	}
 
 	absRoot, err := filepath.Abs(*relRoot)
 	if err != nil {
-		logger.Fatalf("%v", err)
+		logger.Error("failed to get absolute path", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	if _, err = os.Stat(absRoot); err != nil {
-		logger.Fatalf("%v", err)
+		logger.Error("failed to stat root directory", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	if !*quiet {
-		logger.WithField("type", "banner").Infof("Safron version %d", Version)
-		logger.WithField("type", "banner").Infof("Listening to http://%s:%d", *listenHost, *listenPort)
-		logger.WithField("type", "banner").Infof("Serving %s", absRoot)
+		logger.Info("Safron version", slog.String("version", version()), slog.String("type", "banner"))
+		logger.Info("Listening", slog.String("address", "http://"+*listenHost+":"+strconv.Itoa(*listenPort)), slog.String("type", "banner"))
+		logger.Info("Serving", slog.String("path", absRoot), slog.String("type", "banner"))
 	}
 
 	listen := *listenHost + ":" + strconv.Itoa(*listenPort)
-	handler := withLogging(logger, http.FileServer(http.Dir(absRoot)))
+	handlerFunc := withLogging(logger, http.FileServer(http.Dir(absRoot)))
 
-	if err = http.ListenAndServe(listen, handler); err != nil {
-		logger.Fatalf("%v", err)
+	if err = http.ListenAndServe(listen, handlerFunc); err != nil {
+		logger.Error("server error", slog.Any("error", err))
+		os.Exit(1)
 	}
 }
