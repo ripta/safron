@@ -1,0 +1,22 @@
+images:
+  - 'gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA'
+
+steps:
+
+  - id: Build
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA'
+      - '--label'
+      - 'org.opencontainers.image.source=https://github.com/ripta/$REPO_NAME'
+      - '--label'
+      - 'org.opencontainers.image.revision=$COMMIT_SHA'
+      - '--label'
+      - 'net.r8y.build.id=$BUILD_ID'
+      - '--label'
+      - 'net.r8y.build.trigger=$TRIGGER_NAME'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
