@@ -1,4 +1,4 @@
-FROM golang:1.21-bookworm AS builder
+FROM golang:1.24-bookworm AS builder
 
 ENV PROJECT=github.com/ripta/safron
 ENV CGO_ENABLED=0
