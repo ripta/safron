@@ -44,6 +44,11 @@ func main() {
 	}
 	logger := slog.New(handler)
 
+	if args := flag.Args(); len(args) > 0 {
+		logger.Error("unexpected positional arguments", slog.Any("args", args))
+		os.Exit(1)
+	}
+
 	absRoot, err := filepath.Abs(*relRoot)
 	if err != nil {
 		logger.Error("failed to get absolute path", slog.Any("error", err))
