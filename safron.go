@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"time"
 )
@@ -18,7 +19,14 @@ var (
 	quiet      = flag.Bool("quiet", false, "No banner on startup")
 )
 
-const Version = 2
+func version() string {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "(devel)"
+	}
+
+	return info.Main.Version
+}
 
 func withLogging(l *slog.Logger, h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +69,7 @@ func main() {
 	}
 
 	if !*quiet {
-		logger.Info("Safron version", slog.Int("version", Version), slog.String("type", "banner"))
+		logger.Info("Safron version", slog.String("version", version()), slog.String("type", "banner"))
 		logger.Info("Listening", slog.String("address", "http://"+*listenHost+":"+strconv.Itoa(*listenPort)), slog.String("type", "banner"))
 		logger.Info("Serving", slog.String("path", absRoot), slog.String("type", "banner"))
 	}
